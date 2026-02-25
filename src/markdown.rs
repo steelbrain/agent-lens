@@ -293,6 +293,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::literal_string_with_formatting_args)]
     fn strip_style_tags() {
         let html = "<html><body><p>Hello</p><style>body{color:red}</style></body></html>";
         let stripped = strip_html(html);
