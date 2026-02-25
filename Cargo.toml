@@ -1,0 +1,55 @@
+[package]
+name = "agent-lense"
+version = "0.1.0"
+edition = "2024"
+description = "An HTTP proxy that serves the web with HTML converted to markdown for LLMs and agents"
+license = "MIT"
+repository = "https://github.com/steelbrain/agent-lens"
+homepage = "https://github.com/steelbrain/agent-lens"
+readme = "README.md"
+keywords = ["proxy", "markdown", "llm", "html", "http"]
+categories = ["web-programming", "command-line-utilities"]
+rust-version = "1.85"
+
+[dependencies]
+axum = "0.8"
+clap = { version = "4", features = ["derive", "env"] }
+ego-tree = "0.10"
+htmd = "0.1"
+chromiumoxide = { version = "0.7", default-features = false, features = ["tokio-runtime"] }
+futures = "0.3"
+reqwest = { version = "0.12", features = ["rustls-tls", "gzip", "brotli", "deflate"], default-features = false }
+scraper = "0.22"
+thiserror = "2"
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+url = "2"
+
+[dev-dependencies]
+axum-test = "18"
+wiremock = "0.6"
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+unused_must_use = "deny"
+
+[lints.clippy]
+all = { level = "deny", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+cargo = { level = "warn", priority = -1 }
+
+cast_possible_truncation = "allow"
+cast_precision_loss = "allow"
+cast_sign_loss = "allow"
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+multiple_crate_versions = "allow"
+cargo_common_metadata = "allow"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true

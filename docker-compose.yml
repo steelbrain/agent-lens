@@ -1,0 +1,8 @@
+services:
+  agent-lense:
+    build: .
+    ports:
+      - "3001:3001"
+    environment:
+      - RUST_LOG=info
+    restart: unless-stopped
