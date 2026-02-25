@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - HTTP proxy that converts web pages to markdown
 - HTML-to-markdown conversion via htmd with metadata extraction (title, description, language)
 - HTML stripping of non-content elements (scripts, styles, nav, footer, ads, etc.)
-- Headless Chrome rendering for JavaScript-heavy pages via `?render=true`
+- Headless Chrome rendering for JavaScript-heavy pages (automatic when Chrome is available)
 - JSON passthrough — JSON responses are returned as-is
 - YAML frontmatter with source URL, title, and description
 - Configurable via CLI flags and environment variables (`AGENT_LENSE_` prefix)
