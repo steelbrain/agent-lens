@@ -15,7 +15,6 @@ CROSS_TARGETS=(
   x86_64-unknown-linux-gnu
   aarch64-unknown-linux-gnu
   x86_64-pc-windows-gnu
-  aarch64-pc-windows-gnu
 )
 
 # Map rust target triple to a short archive stem (no extension).
@@ -26,7 +25,6 @@ archive_stem() {
     x86_64-unknown-linux-gnu)    echo "${BIN}-x86_64-linux" ;;
     aarch64-unknown-linux-gnu)   echo "${BIN}-aarch64-linux" ;;
     x86_64-pc-windows-gnu)       echo "${BIN}-x86_64-windows" ;;
-    aarch64-pc-windows-gnu)      echo "${BIN}-aarch64-windows" ;;
     *)                           echo "${BIN}-${1}" ;;
   esac
 }
