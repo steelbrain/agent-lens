@@ -8,6 +8,12 @@ An HTTP proxy that serves the web with HTML converted to markdown — built for 
 cargo run -- --port 3001
 ```
 
+Or with Docker:
+
+```bash
+docker compose up
+```
+
 Then visit `http://localhost:3001/https://example.com/` to get a markdown view of any website.
 
 Original URLs are preserved as-is in the output. Agents can follow links by requesting them through the proxy the same way (e.g. `GET /https://example.com/page`).
@@ -22,12 +28,6 @@ All options can be set via CLI flags or environment variables.
 | `AGENT_LENSE_BIND` | `--bind` | `0.0.0.0` | Address to bind to |
 | `AGENT_LENSE_TIMEOUT` | `--timeout` | `30` | Upstream request timeout in seconds |
 | `AGENT_LENSE_CHROME_NO_SANDBOX` | `--chrome-no-sandbox` | `false` | Disable Chrome sandbox and `/dev/shm` usage (set automatically in Docker) |
-
-## Docker
-
-```
-docker compose up
-```
 
 ## Development
 
