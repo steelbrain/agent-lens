@@ -1,6 +1,12 @@
 # agent-lense
 
-An HTTP proxy that serves the web with HTML converted to markdown — built for LLMs and agents.
+An HTTP proxy that converts web pages to clean markdown — built for LLMs and agents.
+
+## The problem
+
+When LLMs fetch a web page, they get raw HTML. That HTML is full of noise: `<script>` tags, inline CSS, SVG blobs, tracking pixels, ad containers, navigation chrome, and deeply nested `<div>` soup. All of that eats tokens and adds zero useful information. Worse, a plain HTTP fetch only gets the initial HTML document — it doesn't execute JavaScript. That means single-page apps, client-rendered dashboards, and any page that hydrates content after load come back mostly empty.
+
+Agent Lense sits between your LLM and the web. It fetches pages, renders JavaScript when needed using headless Chrome, strips away everything that isn't content, and returns clean markdown. Your agent gets the actual text, links, and structure of the page without burning context on markup that was never meant for it.
 
 ## Usage
 
