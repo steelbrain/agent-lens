@@ -3,6 +3,7 @@
 pub mod browser;
 pub mod html;
 pub mod markdown;
+pub mod mcp;
 pub mod server;
 
 use std::sync::Arc;

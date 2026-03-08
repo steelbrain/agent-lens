@@ -1,15 +1,16 @@
 # Agent Lense
 
-HTTP proxy that converts web pages to markdown for LLM/agent consumption.
+HTTP proxy and MCP server that converts web pages to markdown for LLM/agent consumption.
 
 ## Architecture
 
-- `src/main.rs` — Entry point, CLI parsing, server startup
-- `src/lib.rs` — Library root, re-exports all modules
+- `src/main.rs` — Entry point, CLI parsing, server startup, MCP/HTTP mode branching
+- `src/lib.rs` — Library root, re-exports all modules, shared types (`AppState`, `Config`, `ProxyError`)
 - `src/server.rs` — Axum HTTP server, routing, request handling
 - `src/html.rs` — Fetching remote HTML via reqwest
 - `src/markdown.rs` — HTML-to-markdown conversion via htmd
 - `src/browser.rs` — Headless Chrome rendering for JS-heavy pages (chromiumoxide)
+- `src/mcp.rs` — MCP stdio server via rmcp, exposes `fetch` tool with pagination
 - `tests/integration.rs` — Integration tests using axum-test and wiremock
 
 ## Commands

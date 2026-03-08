@@ -8,6 +8,7 @@ use tracing::info;
 
 use agent_lense::browser::BrowserRenderer;
 use agent_lense::html::build_client;
+use agent_lense::mcp::run_mcp_server;
 use agent_lense::server::build_router;
 use agent_lense::{AppState, Config};
 
@@ -30,6 +31,10 @@ struct Cli {
     /// Disable Chrome's sandbox and /dev/shm usage (required inside containers).
     #[arg(long, default_value_t = false, env = "AGENT_LENSE_CHROME_NO_SANDBOX")]
     chrome_no_sandbox: bool,
+
+    /// Run as an MCP (Model Context Protocol) stdio server instead of an HTTP proxy.
+    #[arg(long, default_value_t = false, env = "AGENT_LENSE_MCP")]
+    mcp: bool,
 }
 
 #[tokio::main]
@@ -46,9 +51,7 @@ async fn main() {
 
     let cli = Cli::parse();
 
-    let config = Arc::new(Config { port: cli.port, bind: cli.bind.clone(), timeout: cli.timeout });
-
-    let client = build_client(config.timeout).expect("failed to build HTTP client");
+    let client = build_client(cli.timeout).expect("failed to build HTTP client");
 
     let (browser, cdp_handle) = match BrowserRenderer::new(cli.chrome_no_sandbox).await {
         Ok((renderer, handle)) => {
@@ -61,6 +64,13 @@ async fn main() {
         }
     };
 
+    if cli.mcp {
+        info!("starting MCP stdio server");
+        run_mcp_server(client, browser, cli.timeout).await.expect("MCP server error");
+        return;
+    }
+
+    let config = Arc::new(Config { port: cli.port, bind: cli.bind.clone(), timeout: cli.timeout });
     let state = AppState { client, config: config.clone(), browser, cdp_handle };
 
     let router = build_router(state);

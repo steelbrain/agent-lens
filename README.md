@@ -1,28 +1,94 @@
 # agent-lense
 
-An HTTP proxy that converts web pages to clean markdown — built for LLMs and agents.
+Give your AI agent clean markdown instead of raw HTML.
 
-## The problem
+Agent Lense fetches web pages, renders JavaScript with headless Chrome, strips away scripts, styles, nav, and other noise, and returns clean markdown with metadata. Works as an [MCP](https://modelcontextprotocol.io/) tool or a standalone HTTP proxy.
 
-When LLMs fetch a web page, they get raw HTML. That HTML is full of noise: `<script>` tags, inline CSS, SVG blobs, tracking pixels, ad containers, navigation chrome, and deeply nested `<div>` soup. All of that eats tokens and adds zero useful information. Worse, a plain HTTP fetch only gets the initial HTML document — it doesn't execute JavaScript. That means single-page apps, client-rendered dashboards, and any page that hydrates content after load come back mostly empty.
+## Setup
 
-Agent Lense sits between your LLM and the web. It fetches pages, renders JavaScript when needed using headless Chrome, strips away everything that isn't content, and returns clean markdown. Your agent gets the actual text, links, and structure of the page without burning context on markup that was never meant for it.
-
-## Usage
-
-```
-cargo run -- --port 3001
-```
-
-Or with Docker:
+### Claude Code
 
 ```bash
-docker compose up
+claude mcp add --transport stdio agent-lens -- docker run -i --rm ghcr.io/steelbrain/agent-lens --mcp
 ```
 
-Then visit `http://localhost:3001/https://example.com/` to get a markdown view of any website.
+### Codex
 
-Original URLs are preserved as-is in the output. Agents can follow links by requesting them through the proxy the same way (e.g. `GET /https://example.com/page`).
+```bash
+codex mcp add agent-lens -- docker run -i --rm ghcr.io/steelbrain/agent-lens --mcp
+```
+
+### Claude Desktop
+
+Add to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "agent-lense": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "ghcr.io/steelbrain/agent-lens", "--mcp"]
+    }
+  }
+}
+```
+
+### Codex config file
+
+Add to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.agent-lens]
+command = "docker"
+args = ["run", "-i", "--rm", "ghcr.io/steelbrain/agent-lens", "--mcp"]
+```
+
+### From a local build
+
+If you prefer building from source instead of Docker:
+
+```bash
+cargo build --release
+
+# Then use the binary path directly
+claude mcp add --transport stdio agent-lens -- ./target/release/agent-lense --mcp
+codex mcp add agent-lens -- ./target/release/agent-lense --mcp
+```
+
+## The `fetch` tool
+
+The MCP server exposes a single `fetch` tool:
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `url` | string | *(required)* | Full URL to fetch (`https://...` or `http://...`) |
+| `offset` | number | `0` | Character offset to start reading from |
+| `limit` | number | `40000` | Maximum characters to return (~10K tokens) |
+
+Responses include a pagination header with total character count and remaining content, so your agent can page through large documents with follow-up calls.
+
+## HTTP proxy mode
+
+Agent Lense also runs as a standalone HTTP proxy for use outside MCP — any tool, script, or agent framework can call it over HTTP.
+
+```bash
+# Start the proxy
+docker run -p 3001:3001 ghcr.io/steelbrain/agent-lens
+
+# Fetch any page as markdown
+curl http://localhost:3001/https://example.com/
+```
+
+Pass the target URL as the path:
+
+```
+GET /https://example.com/page
+```
+
+- **HTML** is cleaned and converted to markdown with YAML frontmatter (source URL, title, description, language)
+- **Non-HTML** (JSON, images, etc.) is passed through unchanged
+- **Redirects** are forwarded with `Location` rewritten to proxy-relative paths
+- **Original URLs** in the output are preserved as-is — no link rewriting
 
 ## Configuration
 
@@ -30,10 +96,26 @@ All options can be set via CLI flags or environment variables.
 
 | Variable | Flag | Default | Description |
 |---|---|---|---|
-| `AGENT_LENSE_PORT` | `--port` | `3001` | Port to listen on |
-| `AGENT_LENSE_BIND` | `--bind` | `0.0.0.0` | Address to bind to |
-| `AGENT_LENSE_TIMEOUT` | `--timeout` | `30` | Upstream request timeout in seconds |
-| `AGENT_LENSE_CHROME_NO_SANDBOX` | `--chrome-no-sandbox` | `false` | Disable Chrome sandbox and `/dev/shm` usage (set automatically in Docker) |
+| `AGENT_LENSE_MCP` | `--mcp` | `false` | Run as MCP stdio server instead of HTTP proxy |
+| `AGENT_LENSE_PORT` | `--port` | `3001` | Port to listen on (HTTP proxy mode) |
+| `AGENT_LENSE_BIND` | `--bind` | `0.0.0.0` | Address to bind to (HTTP proxy mode) |
+| `AGENT_LENSE_TIMEOUT` | `--timeout` | `30` | Upstream request timeout (seconds) |
+| `AGENT_LENSE_CHROME_NO_SANDBOX` | `--chrome-no-sandbox` | `false` | Disable Chrome sandbox (set automatically in Docker) |
+
+## Docker
+
+Pre-built images for `linux/amd64` and `linux/arm64` are available on [GitHub Container Registry](https://github.com/steelbrain/agent-lens/pkgs/container/agent-lens).
+
+```bash
+# MCP mode
+docker run -i --rm ghcr.io/steelbrain/agent-lens --mcp
+
+# HTTP proxy mode
+docker run -p 3001:3001 ghcr.io/steelbrain/agent-lens
+
+# With docker compose
+docker compose up
+```
 
 ## Development
 

@@ -1,4 +1,4 @@
-FROM rust:1.85-slim AS builder
+FROM rust:1.94-slim AS builder
 
 WORKDIR /app
 
@@ -15,7 +15,7 @@ COPY src/ src/
 RUN touch src/main.rs src/lib.rs && cargo build --release
 
 # Runtime image
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \

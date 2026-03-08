@@ -1,6 +1,6 @@
 [package]
 name = "agent-lense"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 description = "An HTTP proxy that serves the web with HTML converted to markdown for LLMs and agents"
 license = "MIT"
@@ -9,7 +9,7 @@ homepage = "https://github.com/steelbrain/agent-lens"
 readme = "README.md"
 keywords = ["proxy", "markdown", "llm", "html", "http"]
 categories = ["web-programming", "command-line-utilities"]
-rust-version = "1.85"
+rust-version = "1.94"
 
 [dependencies]
 axum = "0.8"
@@ -19,7 +19,9 @@ htmd = "0.1"
 chromiumoxide = { version = "0.7", default-features = false, features = ["tokio-runtime"] }
 futures = "0.3"
 reqwest = { version = "0.12", features = ["rustls-tls", "gzip", "brotli", "deflate"], default-features = false }
+rmcp = { version = "1", features = ["transport-io"] }
 scraper = "0.22"
+serde = { version = "1", features = ["derive"] }
 thiserror = "2"
 tokio = { version = "1", features = ["full"] }
 tracing = "0.1"

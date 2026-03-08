@@ -28,7 +28,7 @@ async fn root_handler() -> impl IntoResponse {
             "agent-lense v{version}\n\n\
              Usage: append a full URL to the path.\n\n\
              \x20 curl http://localhost:3001/https://example.com/\n\n\
-             Documentation: https://github.com/aneesiqbal/agent-lense\n",
+             Documentation: https://github.com/steelbrain/agent-lens\n",
             version = env!("CARGO_PKG_VERSION"),
         ),
     )
@@ -124,12 +124,12 @@ fn build_redirect_response(
         if is_hop_by_hop(name.as_str()) {
             continue;
         }
-        if name.as_str().eq_ignore_ascii_case("location") {
-            if let Ok(location) = value.to_str() {
-                let rewritten = rewrite_location(location, target_url);
-                builder = builder.header(name, &rewritten);
-                continue;
-            }
+        if name.as_str().eq_ignore_ascii_case("location")
+            && let Ok(location) = value.to_str()
+        {
+            let rewritten = rewrite_location(location, target_url);
+            builder = builder.header(name, &rewritten);
+            continue;
         }
         builder = builder.header(name, value);
     }
@@ -149,10 +149,10 @@ fn rewrite_location(location: &str, target_url: &str) -> String {
     }
 
     // Relative location — resolve against the original target URL
-    if let Ok(base) = url::Url::parse(target_url) {
-        if let Ok(resolved) = base.join(location) {
-            return format!("/{resolved}");
-        }
+    if let Ok(base) = url::Url::parse(target_url)
+        && let Ok(resolved) = base.join(location)
+    {
+        return format!("/{resolved}");
     }
 
     // Fallback: return as-is (shouldn't happen with valid URLs)

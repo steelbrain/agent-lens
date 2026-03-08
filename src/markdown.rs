@@ -167,12 +167,12 @@ pub fn strip_html(html: &str) -> String {
                     }
                     continue;
                 }
-                if let scraper::Node::Element(el) = node.value() {
-                    if !is_void_element(&el.name.local) {
-                        output.push_str("</");
-                        output.push_str(&el.name.local);
-                        output.push('>');
-                    }
+                if let scraper::Node::Element(el) = node.value()
+                    && !is_void_element(&el.name.local)
+                {
+                    output.push_str("</");
+                    output.push_str(&el.name.local);
+                    output.push('>');
                 }
             }
         }

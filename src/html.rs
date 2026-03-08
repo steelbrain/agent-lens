@@ -102,10 +102,10 @@ pub async fn fetch_upstream(
 /// Reads the response body, enforcing the maximum size limit.
 async fn read_body_with_limit(response: reqwest::Response) -> Result<Vec<u8>, ProxyError> {
     // Check Content-Length header first for early rejection
-    if let Some(len) = response.content_length() {
-        if len > MAX_RESPONSE_SIZE {
-            return Err(ProxyError::ResponseTooLarge);
-        }
+    if let Some(len) = response.content_length()
+        && len > MAX_RESPONSE_SIZE
+    {
+        return Err(ProxyError::ResponseTooLarge);
     }
 
     let mut body = Vec::new();
@@ -125,10 +125,10 @@ async fn read_body_with_limit(response: reqwest::Response) -> Result<Vec<u8>, Pr
 fn convert_headers(headers: &reqwest::header::HeaderMap) -> HeaderMap {
     let mut map = HeaderMap::new();
     for (name, value) in headers {
-        if let Ok(name) = axum::http::HeaderName::from_bytes(name.as_str().as_bytes()) {
-            if let Ok(value) = axum::http::HeaderValue::from_bytes(value.as_bytes()) {
-                map.insert(name, value);
-            }
+        if let Ok(name) = axum::http::HeaderName::from_bytes(name.as_str().as_bytes())
+            && let Ok(value) = axum::http::HeaderValue::from_bytes(value.as_bytes())
+        {
+            map.insert(name, value);
         }
     }
     map
