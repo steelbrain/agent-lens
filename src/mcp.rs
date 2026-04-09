@@ -104,7 +104,7 @@ impl McpServer {
             };
 
             let html = String::from_utf8_lossy(&html_body);
-            html_to_markdown(&html, url)
+            html_to_markdown(&html, url, true)
         } else {
             let body_len = upstream.body.len();
             match String::from_utf8(upstream.body) {

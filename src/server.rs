@@ -167,7 +167,7 @@ fn build_markdown_response(
     source_url: &str,
 ) -> Result<Response, ProxyError> {
     let html = String::from_utf8_lossy(body);
-    let markdown = html_to_markdown(&html, source_url);
+    let markdown = html_to_markdown(&html, source_url, false);
     let md_bytes = markdown.into_bytes();
 
     let mut builder = Response::builder().status(status);

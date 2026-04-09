@@ -208,9 +208,13 @@ fn is_void_element(tag: &str) -> bool {
 /// 1. Extract metadata (title, description, language) — before stripping
 /// 2. Strip non-content elements
 /// 3. Convert to markdown via htmd
-/// 4. Prepend YAML frontmatter
+/// 4. Prepend YAML frontmatter (and an HTTP-proxy usage hint unless `is_mcp_request`)
+///
+/// The usage hint tells clients how to fetch further URLs via the HTTP proxy.
+/// It is suppressed for MCP requests, where the client already knows how to
+/// call the `fetch` tool and the hint would only add noise.
 #[allow(clippy::missing_panics_doc)]
-pub fn html_to_markdown(html: &str, source_url: &str) -> String {
+pub fn html_to_markdown(html: &str, source_url: &str, is_mcp_request: bool) -> String {
     // 1. Extract metadata before stripping (title and meta get stripped)
     let metadata = extract_metadata(html, source_url);
 
@@ -220,17 +224,21 @@ pub fn html_to_markdown(html: &str, source_url: &str) -> String {
     // 3. Convert to markdown
     let markdown = htmd::convert(&stripped).unwrap_or_default();
 
-    // 4. Prepend frontmatter and usage hint
+    // 4. Prepend frontmatter (and usage hint for HTTP-proxy requests)
     let frontmatter = metadata.to_frontmatter();
-    format!(
-        "{frontmatter}\n\n\
-         > All URLs in this document are original. \
-         To fetch any URL as markdown, send a GET request to this same server \
-         with the full URL as the path, e.g. `GET /https://example.com/page`.\n\n\
-         ---\n\n\
-         {}",
-        markdown.trim()
-    )
+    if is_mcp_request {
+        format!("{frontmatter}\n\n---\n\n{}", markdown.trim())
+    } else {
+        format!(
+            "{frontmatter}\n\n\
+             > All URLs in this document are original. \
+             To fetch any URL as markdown, send a GET request to this same server \
+             with the full URL as the path, e.g. `GET /https://example.com/page`.\n\n\
+             ---\n\n\
+             {}",
+            markdown.trim()
+        )
+    }
 }
 
 #[cfg(test)]
@@ -333,7 +341,7 @@ mod tests {
             </body>
         </html>"#;
 
-        let md = html_to_markdown(html, "https://example.com/");
+        let md = html_to_markdown(html, "https://example.com/", false);
 
         assert!(md.starts_with("---\n"));
         assert!(md.contains("source: https://example.com/"));
@@ -341,5 +349,25 @@ mod tests {
         assert!(md.contains("# Hello"));
         assert!(md.contains("World"));
         assert!(!md.contains("evil"));
+    }
+
+    #[test]
+    fn http_request_includes_usage_hint() {
+        let html = "<html><body><p>Hi</p></body></html>";
+        let md = html_to_markdown(html, "https://example.com/", false);
+        assert!(md.contains("All URLs in this document are original"));
+        assert!(md.contains("GET /https://example.com/page"));
+    }
+
+    #[test]
+    fn mcp_request_omits_usage_hint() {
+        let html = "<html><body><p>Hi</p></body></html>";
+        let md = html_to_markdown(html, "https://example.com/", true);
+        assert!(!md.contains("All URLs in this document are original"));
+        assert!(!md.contains("GET /https://example.com/page"));
+        // Frontmatter and body should still be present.
+        assert!(md.starts_with("---\n"));
+        assert!(md.contains("source: https://example.com/"));
+        assert!(md.contains("Hi"));
     }
 }
